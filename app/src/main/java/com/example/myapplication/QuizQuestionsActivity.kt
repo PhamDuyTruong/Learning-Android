@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,8 @@ class QuizQuestionsActivity : AppCompatActivity(), View.OnClickListener {
     private var mCurrentPosition: Int = 1;
     private var mQuestionList: ArrayList<Questions> ?= null;
     private var mSelectedOptionPosition: Int = 0;
+    private var mUserName:String ?= null;
+    private var mCorrectAnswers : Int = 0;
 
     private var progressBar : ProgressBar?= null
     private  var tvProgress : TextView?= null;
@@ -27,7 +30,10 @@ class QuizQuestionsActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_quiz_questions)
+        setContentView(R.layout.activity_quiz_questions);
+
+        mUserName = intent.getStringExtra(Conststants.USER_NAME);
+
         progressBar = findViewById(R.id.progressBar);
         tvProgress = findViewById(R.id.tv_progress);
         tvQuestions = findViewById(R.id.tv_question);
@@ -39,14 +45,16 @@ class QuizQuestionsActivity : AppCompatActivity(), View.OnClickListener {
         tvOptionFour = findViewById(R.id.tv_option_four);
         btnSubmit = findViewById(R.id.btn_submit);
 
-        val questionsList = Conststants.getQuestions();
+        mQuestionList = Conststants.getQuestions();
         setQuestion();
+
 
         tvOptionOne?.setOnClickListener(this);
         tvOptionTwo?.setOnClickListener(this);
         tvOptionThree?.setOnClickListener(this);
         tvOptionFour?.setOnClickListener(this);
 
+        btnSubmit?.setOnClickListener(this);
     }
 
     private fun setQuestion() {
@@ -168,13 +176,20 @@ class QuizQuestionsActivity : AppCompatActivity(), View.OnClickListener {
                         mCurrentPosition <= mQuestionList!!.size -> {
                             setQuestion();
                         }else -> {
-                        Toast.makeText(this, "You have successfully completed the quiz.", Toast.LENGTH_SHORT).show()
+                           val intent = Intent(this, ResultActivity::class.java);
+                            intent.putExtra(Conststants.USER_NAME, mUserName);
+                            intent.putExtra(Conststants.CORRECT_ANSWERS, mCorrectAnswers)
+                            intent.putExtra(Conststants.TOTAL_QUESTIONS, mQuestionList?.size);
+                            startActivity(intent);
+                            finish();
                         }
                     }
                 }else {
                     val question = mQuestionList?.get(mCurrentPosition - 1)
                     if (question!!.correctAnswer != mSelectedOptionPosition) {
                         answerView(mSelectedOptionPosition, R.drawable.wrong_option_border_bg)
+                    }else{
+                        mCorrectAnswers++;
                     }
                     answerView(question.correctAnswer, R.drawable.correct_option_border_bg)
                     if (mCurrentPosition == mQuestionList!!.size) {
